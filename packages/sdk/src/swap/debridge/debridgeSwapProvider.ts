@@ -10,12 +10,12 @@ import { ERC20, ERC20__factory } from "../../../typechain-types";
 import { formatUnits, parseEther, parseUnits } from "ethers/lib/utils";
 import BigNumber from "bignumber.js";
 import { TX_STATUS } from "../../transaction/constants/transaction-status";
-import { JsonRpcSigner } from "@ethersproject/providers";
+import { JsonRpcSigner, ExternalProvider } from "@ethersproject/providers";
 
 export abstract class DebridgeSwapProvider {
   private static readonly config = DebridgeConfig;
 
-  public static async swap(swapRequest: SwapRequest, pkOrSigner: string | JsonRpcSigner) {
+  public static async swap(swapRequest: SwapRequest, pkOrProvider: string | ExternalProvider, isGasless: boolean) {
     // Validation
     const isSrcChainSupported = !!this.config.chains[swapRequest.srcChainId];
     const isDstChainSupported = !!this.config.chains[swapRequest.srcChainId];
@@ -26,7 +26,7 @@ export abstract class DebridgeSwapProvider {
     )
       throw Error("Swap not supported");
 
-    const wallet = getWallet(pkOrSigner, swapRequest.srcChainId);
+    const wallet = getWallet(pkOrProvider, swapRequest.srcChainId, isGasless);
     let fromAmountInUnits: string;
 
     if (swapRequest.srcChainTokenIn !== AddressZero) {

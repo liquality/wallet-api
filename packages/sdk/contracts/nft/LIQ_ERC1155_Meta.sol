@@ -5,9 +5,12 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import "@opengsn/contracts/src/ERC2771Recipient.sol";
 
-contract LiqERC1155 is ERC1155, Pausable, Ownable, ERC1155Burnable {
-    constructor(string memory uri) ERC1155(uri) {}
+contract LiqERC1155Meta is ERC2771Recipient, ERC1155, Pausable, Ownable, ERC1155Burnable  {
+    constructor(string memory uri, address _trustedForwarder) ERC1155(uri){
+        _setTrustedForwarder(_trustedForwarder);
+    }
 
     function pause() public onlyOwner {
         _pause();
@@ -37,5 +40,17 @@ contract LiqERC1155 is ERC1155, Pausable, Ownable, ERC1155Burnable {
         override
     {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    function setTrustedForwarder(address _trustedForwarder) public onlyOwner {
+        _setTrustedForwarder(_trustedForwarder);
+    }
+    
+    function _msgSender() internal view virtual override(Context, ERC2771Recipient) returns (address sender) {
+        return ERC2771Recipient._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Recipient) returns (bytes calldata) {
+        return ERC2771Recipient._msgData();
     }
 }

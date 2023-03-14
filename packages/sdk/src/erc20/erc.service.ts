@@ -6,7 +6,7 @@ import { AddressZero } from "@ethersproject/constants";
 import { getChainProvider } from "../factory/chain-provider";
 import { TransactionService } from "../transaction/transaction.service";
 import { getWallet } from "../common/utils";
-import { JsonRpcSigner } from "@ethersproject/providers";
+import { ExternalProvider } from "@ethersproject/providers";
 
 type AccountToken = {
   tokenContractAddress: string | null
@@ -96,12 +96,13 @@ export abstract class ERC20Service {
   public static async transfer(
     transferRequest: TransferERC20Request,
     chainId: number,
-    pkOrSigner: string | JsonRpcSigner
+    pkOrProvider: string | ExternalProvider,
+    isGasless: boolean
   ): Promise<string> {
     const { contractAddress, owner, receiver, amount } = transferRequest;
     const contract: ERC20Contract = ERC20__factory.connect(
       AddressZero,
-      getChainProvider(chainId)
+      getChainProvider(chainId,{...(typeof pkOrProvider !== 'string' && {pkOrProvider}), isGasless})
     ).attach(contractAddress);
 
     const tx = await contract.populateTransaction.transfer(receiver, amount);
@@ -116,7 +117,7 @@ export abstract class ERC20Service {
     );
 
     return (
-      await getWallet(pkOrSigner, chainId).sendTransaction(
+      await getWallet(pkOrProvider, chainId, isGasless).sendTransaction(
         preparedTx
       )
     ).hash;

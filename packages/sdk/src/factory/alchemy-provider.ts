@@ -1,5 +1,5 @@
 import { Alchemy, Network } from "alchemy-sdk";
-import { CHAIN_IDS } from "../common/chain-ids";
+import { CHAIN_IDS } from "../common/constants";
 import { Config } from "../common/config";
 
 const chainIdToNetwork = {
